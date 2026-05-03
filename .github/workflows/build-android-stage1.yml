@@ -43,7 +43,7 @@ jobs:
           else
             echo "::warning::ort/requirements.txt not found — ORT build may fail with missing dependencies"
           fi
-          python -m pip install 'cmake==3.27.*' numpy
+          python -m pip install 'cmake==3.28.*' numpy
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1

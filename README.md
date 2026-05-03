@@ -55,7 +55,7 @@ This stage is the toolchain pre-flight: prove that CMake + NDK + ORT's Python bu
 |---|---|
 | Java | 17 (Temurin) |
 | Python | 3.11 |
-| CMake | 3.27.x |
+| CMake | 3.28.x |
 | Android NDK | r26b |
 | Runner | `ubuntu-latest` (GitHub-hosted) |
 
