@@ -50,8 +50,11 @@ REQUIRED_SYMBOLS=(
 )
 
 MISSING=0
+# --dynamic reads the .dynsym table (preserved through strip); --defined-only
+# excludes undefined imports (U-typed entries from libc etc.). The static .symtab
+# is gone in a Release build, so plain --defined-only would return nothing.
 for sym in "${REQUIRED_SYMBOLS[@]}"; do
-  if "${NM}" --defined-only "${ARTIFACT}" 2>/dev/null | grep -q "${sym}"; then
+  if "${NM}" --dynamic --defined-only "${ARTIFACT}" 2>/dev/null | grep -q "${sym}"; then
     echo "  OK:      ${sym}"
   else
     echo "  MISSING: ${sym}" >&2
