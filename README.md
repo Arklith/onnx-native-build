@@ -34,7 +34,7 @@ Go to the repo's [Actions tab](../../actions), select "Build ONNX Runtime — An
 ### Option 2 — tag push (release)
 
 ```bash
-git tag v1.24.3-graim.0
+git tag v1.24.3-arklith.0
 git push --tags
 ```
 
@@ -43,7 +43,7 @@ The workflow runs and uploads `libonnxruntime.so` to a new GitHub Release.
 ## Where output goes
 
 - **Workflow run artifact** — every successful run, downloadable from the Actions UI for ~90 days.
-- **GitHub Release** — only on tag-push runs (`v1.24.3-graim.*`). Immutable URL per version.
+- **GitHub Release** — only on tag-push runs (`v1.24.3-arklith.*`). Immutable URL per version.
 
 ## Stage 1 status
 
