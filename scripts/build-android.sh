@@ -56,8 +56,7 @@ python tools/ci_build/build.py \
   --config Release \
   --build_shared_lib \
   --parallel \
-  --skip_tests \
-  --use_nnapi=0
+  --skip_tests
 
 echo
 echo "=== Build complete ==="
