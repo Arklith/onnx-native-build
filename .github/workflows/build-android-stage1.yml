@@ -1,0 +1,81 @@
+name: Build ONNX Runtime — Android Stage 1
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v1.24.3-graim.*'
+
+jobs:
+  build-android-arm64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write   # required for release upload on tag-push
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ORT build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # ORT 1.24.3 uses a single top-level requirements.txt for build deps.
+          # Older / newer versions may shape this differently — fall back to a
+          # warning if the file moved so a specific missing-package error surfaces
+          # downstream rather than a silent skip.
+          if [ -f ort/requirements.txt ]; then
+            python -m pip install -r ort/requirements.txt
+          else
+            echo "::warning::ort/requirements.txt not found — ORT build may fail with missing dependencies"
+          fi
+          python -m pip install 'cmake==3.27.*' numpy
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26b
+          add-to-path: false
+
+      - name: Export NDK + SDK env
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          # ANDROID_HOME is already exported by the GitHub-hosted runner image
+          # (/usr/local/lib/android/sdk). Re-emit defensively for clarity.
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+
+      - name: Build ORT for arm64-v8a
+        run: bash scripts/build-android.sh arm64-v8a
+
+      - name: Validate artifact
+        run: bash scripts/validate-artifact.sh arm64-v8a
+
+      - name: Upload build artifact (workflow run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libonnxruntime-arm64-v8a-stage1
+          path: build/arm64-v8a/Release/libonnxruntime.so
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (tag-push only)
+        if: startsWith(github.ref, 'refs/tags/v1.24.3-graim.')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/arm64-v8a/Release/libonnxruntime.so
+          fail_on_unmatched_files: true
+          generate_release_notes: true
