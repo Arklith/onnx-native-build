@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 #
 # Build ONNX Runtime for an Android ABI from upstream source.
-# Stage 1: arm64-v8a only, CPU EP only, no DCE/strip yet.
+# Stage 1 + Path B beta-shortcut: arm64-v8a only, CPU + NNAPI EPs, no DCE/strip yet.
+#
+# NNAPI EP added 2026-05-04: the consumer onnxruntime-react-native fork's
+# cpp/SessionUtils.cpp calls OrtSessionOptionsAppendExecutionProvider_Nnapi
+# inside #ifdef USE_NNAPI (which gradle sets by default unless useQnn=true).
+# Without --use_nnapi here, the consumer's link step fails with "undefined
+# symbol" on that function. CoreML EP not added — only relevant on iOS.
 #
 # Required environment:
 #   ANDROID_NDK_HOME — path to Android NDK r26b (or compatible)
@@ -41,7 +47,7 @@ echo "  Output dir:        ${OUTPUT_DIR}"
 echo "  Android API level: 24"
 echo "  ANDROID_NDK_HOME:  ${ANDROID_NDK_HOME}"
 echo "  ANDROID_HOME:      ${ANDROID_HOME}"
-echo "  CPU only:          yes (NNAPI disabled)"
+echo "  Execution providers: CPU + NNAPI"
 echo
 
 cd "${ORT_DIR}"
@@ -55,6 +61,7 @@ python tools/ci_build/build.py \
   --build_dir "${OUTPUT_DIR}" \
   --config Release \
   --build_shared_lib \
+  --use_nnapi \
   --parallel \
   --skip_tests
 
